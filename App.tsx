@@ -27,9 +27,10 @@ import {
 import {useGroupChannel} from '@sendbird/uikit-chat-hooks';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Pressable, Text, View} from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Logger} from '@sendbird/uikit-utils';
+import {GroupChannelHandler} from '@sendbird/chat/groupChannel';
 
 Logger.setLogLevel('debug');
 
@@ -90,6 +91,20 @@ const GroupChannelScreen = () => {
 
   const {sdk} = useSendbirdChat();
   const {channel} = useGroupChannel(sdk, params.channelUrl);
+
+  useEffect(() => {
+    const handler = new GroupChannelHandler();
+    handler.onReactionUpdated = (eventChannel, reactionEvent) => {
+      console.log('onReactionUpdated', eventChannel, reactionEvent);
+    };
+
+    sdk.groupChannel.addGroupChannelHandler('handler_id', handler);
+
+    return () => {
+      sdk.groupChannel.removeGroupChannelHandler('handler_id');
+    };
+  }, []);
+
   if (!channel) return null;
 
   return (
